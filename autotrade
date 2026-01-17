@@ -9,11 +9,11 @@ ScreenGui.Name = "AutoTradeGUI"
 ScreenGui.Parent = Player.PlayerGui
 ScreenGui.ResetOnSpawn = false
 
--- Main Frame
+-- Main Frame (made slightly taller for the counter)
 local MainFrame = Instance.new("Frame")
 MainFrame.Name = "MainFrame"
-MainFrame.Size = UDim2.new(0, 350, 0, 400)
-MainFrame.Position = UDim2.new(0.5, -175, 0.5, -200)
+MainFrame.Size = UDim2.new(0, 350, 0, 450) -- Increased height
+MainFrame.Position = UDim2.new(0.5, -175, 0.5, -225) -- Adjusted position
 MainFrame.AnchorPoint = Vector2.new(0.5, 0.5)
 MainFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 35)
 MainFrame.BorderSizePixel = 0
@@ -71,10 +71,70 @@ ContentFrame.Position = UDim2.new(0, 10, 0, 50)
 ContentFrame.BackgroundTransparency = 1
 ContentFrame.Parent = MainFrame
 
+-- Inventory Counter Section
+local InventorySection = Instance.new("Frame")
+InventorySection.Name = "InventorySection"
+InventorySection.Size = UDim2.new(1, 0, 0, 60)
+InventorySection.BackgroundColor3 = Color3.fromRGB(40, 40, 45)
+InventorySection.Parent = ContentFrame
+
+local InventoryCorner = Instance.new("UICorner")
+InventoryCorner.CornerRadius = UDim.new(0, 8)
+InventoryCorner.Parent = InventorySection
+
+local InventoryTitle = Instance.new("TextLabel")
+InventoryTitle.Name = "InventoryTitle"
+InventoryTitle.Size = UDim2.new(1, -20, 0, 25)
+InventoryTitle.Position = UDim2.new(0, 10, 0, 5)
+InventoryTitle.BackgroundTransparency = 1
+InventoryTitle.Text = "Inventory Count"
+InventoryTitle.TextColor3 = Color3.fromRGB(255, 255, 255)
+InventoryTitle.Font = Enum.Font.GothamBold
+InventoryTitle.TextSize = 14
+InventoryTitle.TextXAlignment = Enum.TextXAlignment.Left
+InventoryTitle.Parent = InventorySection
+
+-- Counter Display
+local CounterDisplay = Instance.new("Frame")
+CounterDisplay.Name = "CounterDisplay"
+CounterDisplay.Size = UDim2.new(1, -20, 0, 25)
+CounterDisplay.Position = UDim2.new(0, 10, 0, 30)
+CounterDisplay.BackgroundColor3 = Color3.fromRGB(50, 50, 55)
+CounterDisplay.Parent = InventorySection
+
+local CounterCorner = Instance.new("UICorner")
+CounterCorner.CornerRadius = UDim.new(0, 6)
+CounterCorner.Parent = CounterDisplay
+
+local ItemNameLabel = Instance.new("TextLabel")
+ItemNameLabel.Name = "ItemNameLabel"
+ItemNameLabel.Size = UDim2.new(0.6, 0, 1, 0)
+ItemNameLabel.Position = UDim2.new(0, 10, 0, 0)
+ItemNameLabel.BackgroundTransparency = 1
+ItemNameLabel.Text = "Esok Sekolah:"
+ItemNameLabel.TextColor3 = Color3.fromRGB(200, 200, 200)
+ItemNameLabel.Font = Enum.Font.Gotham
+ItemNameLabel.TextSize = 14
+ItemNameLabel.TextXAlignment = Enum.TextXAlignment.Left
+ItemNameLabel.Parent = CounterDisplay
+
+local CounterLabel = Instance.new("TextLabel")
+CounterLabel.Name = "CounterLabel"
+CounterLabel.Size = UDim2.new(0.3, 0, 1, 0)
+CounterLabel.Position = UDim2.new(0.7, -10, 0, 0)
+CounterLabel.BackgroundTransparency = 1
+CounterLabel.Text = "0"
+CounterLabel.TextColor3 = Color3.fromRGB(255, 215, 0) -- Gold color
+CounterLabel.Font = Enum.Font.GothamBold
+CounterLabel.TextSize = 16
+CounterLabel.TextXAlignment = Enum.TextXAlignment.Right
+CounterLabel.Parent = CounterDisplay
+
 -- Configurations Section
 local ConfigSection = Instance.new("Frame")
 ConfigSection.Name = "ConfigSection"
 ConfigSection.Size = UDim2.new(1, 0, 0, 130)
+ConfigSection.Position = UDim2.new(0, 0, 0, 70) -- Adjusted position
 ConfigSection.BackgroundColor3 = Color3.fromRGB(40, 40, 45)
 ConfigSection.Parent = ContentFrame
 
@@ -158,7 +218,7 @@ AmountCorner.Parent = AmountBox
 local ControlsSection = Instance.new("Frame")
 ControlsSection.Name = "ControlsSection"
 ControlsSection.Size = UDim2.new(1, 0, 0, 220)
-ControlsSection.Position = UDim2.new(0, 0, 0, 140)
+ControlsSection.Position = UDim2.new(0, 0, 0, 210) -- Adjusted position
 ControlsSection.BackgroundColor3 = Color3.fromRGB(40, 40, 45)
 ControlsSection.Parent = ContentFrame
 
@@ -267,32 +327,138 @@ CloseButton.MouseButton1Click:Connect(function()
     ScreenGui:Destroy()
 end)
 
+-- Function to count Esok Sekolah items
+local function countEsokSekolah()
+    local count = 0
+    
+    -- Count in backpack
+    if Player.Backpack then
+        for _, item in pairs(Player.Backpack:GetChildren()) do
+            if item.Name == "Esok Sekolah" then
+                count = count + 1
+            end
+        end
+    end
+    
+    -- Count in character (if equipped)
+    if Player.Character then
+        for _, item in pairs(Player.Character:GetChildren()) do
+            if item.Name == "Esok Sekolah" and item:IsA("Tool") then
+                count = count + 1
+            end
+        end
+    end
+    
+    return count
+end
+
+-- Function to update the counter display
+local function updateCounter()
+    local count = countEsokSekolah()
+    CounterLabel.Text = tostring(count)
+    
+    -- Change color based on count
+    if count == 0 then
+        CounterLabel.TextColor3 = Color3.fromRGB(255, 100, 100) -- Red for 0
+    elseif count < 5 then
+        CounterLabel.TextColor3 = Color3.fromRGB(255, 165, 0) -- Orange for 1-4
+    else
+        CounterLabel.TextColor3 = Color3.fromRGB(50, 205, 50) -- Green for 5+
+    end
+end
+
+-- Setup automatic counter updates
+local function setupCounterListeners()
+    -- Initial update
+    updateCounter()
+    
+    -- Function to check if item is Esok Sekolah
+    local function isEsokSekolah(item)
+        return item and item.Name == "Esok Sekolah"
+    end
+    
+    -- Track backpack changes
+    if Player.Backpack then
+        -- Listen for items added to backpack
+        Player.Backpack.ChildAdded:Connect(function(child)
+            if isEsokSekolah(child) then
+                wait(0.1) -- Small delay to ensure item is properly added
+                updateCounter()
+                print("Gained Esok Sekolah from backpack")
+            end
+        end)
+        
+        -- Listen for items removed from backpack
+        Player.Backpack.ChildRemoved:Connect(function(child)
+            if isEsokSekolah(child) then
+                wait(0.1) -- Small delay to ensure item is properly removed
+                updateCounter()
+                print("Lost Esok Sekolah from backpack")
+            end
+        end)
+    end
+    
+    -- Track character changes (equip/unequip)
+    if Player.Character then
+        -- Listen for items equipped to character
+        Player.Character.ChildAdded:Connect(function(child)
+            if child:IsA("Tool") and isEsokSekolah(child) then
+                wait(0.1) -- Small delay
+                updateCounter()
+                print("Equipped Esok Sekolah")
+            end
+        end)
+        
+        -- Listen for items unequipped from character
+        Player.Character.ChildRemoved:Connect(function(child)
+            if child:IsA("Tool") and isEsokSekolah(child) then
+                wait(0.1) -- Small delay
+                updateCounter()
+                print("Unequipped Esok Sekolah")
+            end
+        end)
+    end
+    
+    -- Handle character respawns
+    Player.CharacterAdded:Connect(function(character)
+        -- Wait for character to fully load
+        wait(1)
+        
+        -- Set up listeners for new character
+        character.ChildAdded:Connect(function(child)
+            if child:IsA("Tool") and isEsokSekolah(child) then
+                wait(0.1)
+                updateCounter()
+                print("Equipped Esok Sekolah (new character)")
+            end
+        end)
+        
+        character.ChildRemoved:Connect(function(child)
+            if child:IsA("Tool") and isEsokSekolah(child) then
+                wait(0.1)
+                updateCounter()
+                print("Unequipped Esok Sekolah (new character)")
+            end
+        end)
+        
+        -- Update counter after respawn
+        updateCounter()
+        print("Character respawned, counter updated")
+    end)
+    
+    -- Also set up a periodic check as backup (every 3 seconds)
+    spawn(function()
+        while true do
+            wait(3)
+            updateCounter() -- Backup update
+        end
+    end)
+end
+
 -- Update Status Function
 local function updateStatus(message, color)
     StatusLabel.Text = "Status: " .. message
     StatusLabel.TextColor3 = color or Color3.fromRGB(200, 200, 200)
-end
-
--- Function to count Esok Sekolah items
-local function countEsokSekolah()
-    local count = 0
-    for _, item in pairs(Player.Backpack:GetChildren()) do
-        if item.Name == "Esok Sekolah" then
-            count = count + 1
-        end
-    end
-    return count
-end
-
--- Function to get Esok Sekolah items
-local function getEsokSekolahItems()
-    local items = {}
-    for _, item in pairs(Player.Backpack:GetChildren()) do
-        if item.Name == "Esok Sekolah" then
-            table.insert(items, item)
-        end
-    end
-    return items
 end
 
 -- Your Original Scripts Modified with GUI Controls
@@ -359,15 +525,25 @@ local function startAutoTrade()
         local itemsTraded = 0
         
         -- Get all items once
-        local items = getEsokSekolahItems()
+        local items = {}
+        for _, item in pairs(Player.Backpack:GetChildren()) do
+            if item.Name == "Esok Sekolah" then
+                table.insert(items, item)
+            end
+        end
         
         for i = 1, math.min(amount, #items) do
             if not autoTradeRunning then break end
             
             local brainrot = items[i]
             if not brainrot or brainrot.Parent ~= Player.Backpack then
-                -- Item no longer available, try to get next one
-                items = getEsokSekolahItems()
+                -- Item no longer available, refresh list
+                items = {}
+                for _, item in pairs(Player.Backpack:GetChildren()) do
+                    if item.Name == "Esok Sekolah" then
+                        table.insert(items, item)
+                    end
+                end
                 if i <= #items then
                     brainrot = items[i]
                 else
@@ -418,6 +594,7 @@ local function startAutoTrade()
                 
                 if traded then
                     updateStatus("Sent " .. itemsTraded .. "/" .. amount, Color3.fromRGB(65, 105, 225))
+                    -- Counter will auto-update via event listeners
                 else
                     updateStatus("Failed to send item", Color3.fromRGB(255, 100, 100))
                 end
@@ -428,6 +605,7 @@ local function startAutoTrade()
         
         autoTradeRunning = false
         updateStatus("Trade Complete", Color3.fromRGB(50, 205, 50))
+        updateCounter() -- Final update
     end)
 end
 
@@ -499,10 +677,14 @@ end
 setupTextBoxFocus(NicknameBox)
 setupTextBoxFocus(AmountBox)
 
+-- Setup the automatic counter listeners
+setupCounterListeners()
+
 -- Initial Status
 updateStatus("Ready to start", Color3.fromRGB(200, 200, 200))
 
 -- Notify user
 print("Auto Trade GUI Loaded!")
+print("Esok Sekolah counter active - automatically updates when you gain/lose items")
 print("Drag the title bar to move the window")
 print("Enter target nickname and amount, then click buttons to start")
