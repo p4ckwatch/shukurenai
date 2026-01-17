@@ -2,18 +2,38 @@
 local Player = game:GetService("Players").LocalPlayer
 local TweenService = game:GetService("TweenService")
 local UserInputService = game:GetService("UserInputService")
+local RunService = game:GetService("RunService")
 
 -- Create ScreenGui
 local ScreenGui = Instance.new("ScreenGui")
 ScreenGui.Name = "AutoTradeGUI"
 ScreenGui.Parent = Player.PlayerGui
 ScreenGui.ResetOnSpawn = false
+ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 
--- Main Frame (made slightly taller for the counter)
+-- Detect if running on mobile
+local isMobile = UserInputService.TouchEnabled and not UserInputService.MouseEnabled
+local isTablet = isMobile and (game:GetService("GuiService"):GetScreenResolution().Y > 1000)
+
+-- Responsive sizing based on device
+local baseWidth = 350
+local baseHeight = 450
+local scaleFactor = isMobile and 1.2 or 1.0  -- Slightly larger on mobile for touch
+
+if isTablet then
+    scaleFactor = 1.1  -- Smaller scale for tablets
+elseif isMobile then
+    scaleFactor = 1.3  -- Larger for phones
+end
+
+local guiWidth = baseWidth * scaleFactor
+local guiHeight = baseHeight * scaleFactor
+
+-- Main Frame with responsive sizing
 local MainFrame = Instance.new("Frame")
 MainFrame.Name = "MainFrame"
-MainFrame.Size = UDim2.new(0, 350, 0, 450) -- Increased height
-MainFrame.Position = UDim2.new(0.5, -175, 0.5, -225) -- Adjusted position
+MainFrame.Size = UDim2.new(0, guiWidth, 0, guiHeight)
+MainFrame.Position = UDim2.new(0.5, -guiWidth/2, 0.5, -guiHeight/2)
 MainFrame.AnchorPoint = Vector2.new(0.5, 0.5)
 MainFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 35)
 MainFrame.BorderSizePixel = 0
@@ -21,311 +41,444 @@ MainFrame.Parent = ScreenGui
 
 -- Corner Radius
 local UICorner = Instance.new("UICorner")
-UICorner.CornerRadius = UDim.new(0, 12)
+UICorner.CornerRadius = UDim.new(0, 12 * scaleFactor)
 UICorner.Parent = MainFrame
 
 -- Title Bar
 local TitleBar = Instance.new("Frame")
 TitleBar.Name = "TitleBar"
-TitleBar.Size = UDim2.new(1, 0, 0, 40)
+TitleBar.Size = UDim2.new(1, 0, 0, 40 * scaleFactor)
 TitleBar.BackgroundColor3 = Color3.fromRGB(25, 25, 30)
 TitleBar.Parent = MainFrame
 
 local TitleCorner = Instance.new("UICorner")
-TitleCorner.CornerRadius = UDim.new(0, 12)
+TitleCorner.CornerRadius = UDim.new(0, 12 * scaleFactor)
 TitleCorner.Parent = TitleBar
 
 local Title = Instance.new("TextLabel")
 Title.Name = "Title"
-Title.Size = UDim2.new(1, -20, 1, 0)
-Title.Position = UDim2.new(0, 10, 0, 0)
+Title.Size = UDim2.new(1, -70 * scaleFactor, 1, 0)
+Title.Position = UDim2.new(0, 10 * scaleFactor, 0, 0)
 Title.BackgroundTransparency = 1
 Title.Text = "Auto Trade System"
 Title.TextColor3 = Color3.fromRGB(255, 255, 255)
 Title.Font = Enum.Font.GothamBold
-Title.TextSize = 18
+Title.TextSize = 18 * scaleFactor
 Title.TextXAlignment = Enum.TextXAlignment.Left
 Title.Parent = TitleBar
 
+-- Minimize Button
+local MinimizeButton = Instance.new("TextButton")
+MinimizeButton.Name = "MinimizeButton"
+MinimizeButton.Size = UDim2.new(0, 30 * scaleFactor, 0, 30 * scaleFactor)
+MinimizeButton.Position = UDim2.new(1, -70 * scaleFactor, 0.5, -15 * scaleFactor)
+MinimizeButton.AnchorPoint = Vector2.new(0, 0.5)
+MinimizeButton.BackgroundColor3 = Color3.fromRGB(40, 40, 45)
+MinimizeButton.Text = "_"
+MinimizeButton.TextColor3 = Color3.fromRGB(200, 200, 200)
+MinimizeButton.Font = Enum.Font.GothamBold
+MinimizeButton.TextSize = 20 * scaleFactor
+MinimizeButton.Parent = TitleBar
+
+local MinimizeCorner = Instance.new("UICorner")
+MinimizeCorner.CornerRadius = UDim.new(0, 6 * scaleFactor)
+MinimizeCorner.Parent = MinimizeButton
+
+-- Close Button
 local CloseButton = Instance.new("TextButton")
 CloseButton.Name = "CloseButton"
-CloseButton.Size = UDim2.new(0, 30, 0, 30)
-CloseButton.Position = UDim2.new(1, -35, 0.5, -15)
-CloseButton.AnchorPoint = Vector2.new(0.5, 0.5)
+CloseButton.Size = UDim2.new(0, 30 * scaleFactor, 0, 30 * scaleFactor)
+CloseButton.Position = UDim2.new(1, -35 * scaleFactor, 0.5, -15 * scaleFactor)
+CloseButton.AnchorPoint = Vector2.new(0, 0.5)
 CloseButton.BackgroundColor3 = Color3.fromRGB(40, 40, 45)
 CloseButton.Text = "X"
 CloseButton.TextColor3 = Color3.fromRGB(255, 100, 100)
 CloseButton.Font = Enum.Font.GothamBold
-CloseButton.TextSize = 16
+CloseButton.TextSize = 16 * scaleFactor
 CloseButton.Parent = TitleBar
 
 local CloseCorner = Instance.new("UICorner")
-CloseCorner.CornerRadius = UDim.new(0, 6)
+CloseCorner.CornerRadius = UDim.new(0, 6 * scaleFactor)
 CloseCorner.Parent = CloseButton
+
+-- Minimized Bar (hidden initially)
+local MinimizedBar = Instance.new("Frame")
+MinimizedBar.Name = "MinimizedBar"
+MinimizedBar.Size = UDim2.new(0, 150 * scaleFactor, 0, 40 * scaleFactor)
+MinimizedBar.Position = UDim2.new(0, 10 * scaleFactor, 0, 10 * scaleFactor)
+MinimizedBar.BackgroundColor3 = Color3.fromRGB(25, 25, 30)
+MinimizedBar.BorderSizePixel = 0
+MinimizedBar.Visible = false
+MinimizedBar.Parent = ScreenGui
+
+local MinimizedCorner = Instance.new("UICorner")
+MinimizedCorner.CornerRadius = UDim.new(0, 8 * scaleFactor)
+MinimizedCorner.Parent = MinimizedBar
+
+local MinimizedTitle = Instance.new("TextLabel")
+MinimizedTitle.Name = "MinimizedTitle"
+MinimizedTitle.Size = UDim2.new(1, -40 * scaleFactor, 1, 0)
+MinimizedTitle.Position = UDim2.new(0, 10 * scaleFactor, 0, 0)
+MinimizedTitle.BackgroundTransparency = 1
+MinimizedTitle.Text = "Auto Trade"
+MinimizedTitle.TextColor3 = Color3.fromRGB(255, 255, 255)
+MinimizedTitle.Font = Enum.Font.GothamBold
+MinimizedTitle.TextSize = 14 * scaleFactor
+MinimizedTitle.TextXAlignment = Enum.TextXAlignment.Left
+MinimizedTitle.Parent = MinimizedBar
+
+local MaximizeButton = Instance.new("TextButton")
+MaximizeButton.Name = "MaximizeButton"
+MaximizeButton.Size = UDim2.new(0, 30 * scaleFactor, 0, 30 * scaleFactor)
+MaximizeButton.Position = UDim2.new(1, -35 * scaleFactor, 0.5, -15 * scaleFactor)
+MaximizeButton.AnchorPoint = Vector2.new(0, 0.5)
+MaximizeButton.BackgroundColor3 = Color3.fromRGB(40, 40, 45)
+MaximizeButton.Text = "^"
+MaximizeButton.TextColor3 = Color3.fromRGB(50, 205, 50)
+MaximizeButton.Font = Enum.Font.GothamBold
+MaximizeButton.TextSize = 16 * scaleFactor
+MaximizeButton.Parent = MinimizedBar
+
+local MaximizeCorner = Instance.new("UICorner")
+MaximizeCorner.CornerRadius = UDim.new(0, 6 * scaleFactor)
+MaximizeCorner.Parent = MaximizeButton
 
 -- Content Frame
 local ContentFrame = Instance.new("Frame")
 ContentFrame.Name = "ContentFrame"
-ContentFrame.Size = UDim2.new(1, -20, 1, -60)
-ContentFrame.Position = UDim2.new(0, 10, 0, 50)
+ContentFrame.Size = UDim2.new(1, -20 * scaleFactor, 1, -60 * scaleFactor)
+ContentFrame.Position = UDim2.new(0, 10 * scaleFactor, 0, 50 * scaleFactor)
 ContentFrame.BackgroundTransparency = 1
 ContentFrame.Parent = MainFrame
 
 -- Inventory Counter Section
 local InventorySection = Instance.new("Frame")
 InventorySection.Name = "InventorySection"
-InventorySection.Size = UDim2.new(1, 0, 0, 60)
+InventorySection.Size = UDim2.new(1, 0, 0, 60 * scaleFactor)
 InventorySection.BackgroundColor3 = Color3.fromRGB(40, 40, 45)
 InventorySection.Parent = ContentFrame
 
 local InventoryCorner = Instance.new("UICorner")
-InventoryCorner.CornerRadius = UDim.new(0, 8)
+InventoryCorner.CornerRadius = UDim.new(0, 8 * scaleFactor)
 InventoryCorner.Parent = InventorySection
 
 local InventoryTitle = Instance.new("TextLabel")
 InventoryTitle.Name = "InventoryTitle"
-InventoryTitle.Size = UDim2.new(1, -20, 0, 25)
-InventoryTitle.Position = UDim2.new(0, 10, 0, 5)
+InventoryTitle.Size = UDim2.new(1, -20 * scaleFactor, 0, 25 * scaleFactor)
+InventoryTitle.Position = UDim2.new(0, 10 * scaleFactor, 0, 5 * scaleFactor)
 InventoryTitle.BackgroundTransparency = 1
 InventoryTitle.Text = "Inventory Count"
 InventoryTitle.TextColor3 = Color3.fromRGB(255, 255, 255)
 InventoryTitle.Font = Enum.Font.GothamBold
-InventoryTitle.TextSize = 14
+InventoryTitle.TextSize = 14 * scaleFactor
 InventoryTitle.TextXAlignment = Enum.TextXAlignment.Left
 InventoryTitle.Parent = InventorySection
 
 -- Counter Display
 local CounterDisplay = Instance.new("Frame")
 CounterDisplay.Name = "CounterDisplay"
-CounterDisplay.Size = UDim2.new(1, -20, 0, 25)
-CounterDisplay.Position = UDim2.new(0, 10, 0, 30)
+CounterDisplay.Size = UDim2.new(1, -20 * scaleFactor, 0, 25 * scaleFactor)
+CounterDisplay.Position = UDim2.new(0, 10 * scaleFactor, 0, 30 * scaleFactor)
 CounterDisplay.BackgroundColor3 = Color3.fromRGB(50, 50, 55)
 CounterDisplay.Parent = InventorySection
 
 local CounterCorner = Instance.new("UICorner")
-CounterCorner.CornerRadius = UDim.new(0, 6)
+CounterCorner.CornerRadius = UDim.new(0, 6 * scaleFactor)
 CounterCorner.Parent = CounterDisplay
 
 local ItemNameLabel = Instance.new("TextLabel")
 ItemNameLabel.Name = "ItemNameLabel"
 ItemNameLabel.Size = UDim2.new(0.6, 0, 1, 0)
-ItemNameLabel.Position = UDim2.new(0, 10, 0, 0)
+ItemNameLabel.Position = UDim2.new(0, 10 * scaleFactor, 0, 0)
 ItemNameLabel.BackgroundTransparency = 1
 ItemNameLabel.Text = "Esok Sekolah:"
 ItemNameLabel.TextColor3 = Color3.fromRGB(200, 200, 200)
 ItemNameLabel.Font = Enum.Font.Gotham
-ItemNameLabel.TextSize = 14
+ItemNameLabel.TextSize = 14 * scaleFactor
 ItemNameLabel.TextXAlignment = Enum.TextXAlignment.Left
 ItemNameLabel.Parent = CounterDisplay
 
 local CounterLabel = Instance.new("TextLabel")
 CounterLabel.Name = "CounterLabel"
 CounterLabel.Size = UDim2.new(0.3, 0, 1, 0)
-CounterLabel.Position = UDim2.new(0.7, -10, 0, 0)
+CounterLabel.Position = UDim2.new(0.7, -10 * scaleFactor, 0, 0)
 CounterLabel.BackgroundTransparency = 1
 CounterLabel.Text = "0"
 CounterLabel.TextColor3 = Color3.fromRGB(255, 215, 0) -- Gold color
 CounterLabel.Font = Enum.Font.GothamBold
-CounterLabel.TextSize = 16
+CounterLabel.TextSize = 16 * scaleFactor
 CounterLabel.TextXAlignment = Enum.TextXAlignment.Right
 CounterLabel.Parent = CounterDisplay
 
 -- Configurations Section
 local ConfigSection = Instance.new("Frame")
 ConfigSection.Name = "ConfigSection"
-ConfigSection.Size = UDim2.new(1, 0, 0, 130)
-ConfigSection.Position = UDim2.new(0, 0, 0, 70) -- Adjusted position
+ConfigSection.Size = UDim2.new(1, 0, 0, 130 * scaleFactor)
+ConfigSection.Position = UDim2.new(0, 0, 0, 70 * scaleFactor)
 ConfigSection.BackgroundColor3 = Color3.fromRGB(40, 40, 45)
 ConfigSection.Parent = ContentFrame
 
 local ConfigCorner = Instance.new("UICorner")
-ConfigCorner.CornerRadius = UDim.new(0, 8)
+ConfigCorner.CornerRadius = UDim.new(0, 8 * scaleFactor)
 ConfigCorner.Parent = ConfigSection
 
 local ConfigTitle = Instance.new("TextLabel")
 ConfigTitle.Name = "ConfigTitle"
-ConfigTitle.Size = UDim2.new(1, -20, 0, 30)
-ConfigTitle.Position = UDim2.new(0, 10, 0, 0)
+ConfigTitle.Size = UDim2.new(1, -20 * scaleFactor, 0, 30 * scaleFactor)
+ConfigTitle.Position = UDim2.new(0, 10 * scaleFactor, 0, 0)
 ConfigTitle.BackgroundTransparency = 1
 ConfigTitle.Text = "Configuration"
 ConfigTitle.TextColor3 = Color3.fromRGB(255, 255, 255)
 ConfigTitle.Font = Enum.Font.GothamBold
-ConfigTitle.TextSize = 16
+ConfigTitle.TextSize = 16 * scaleFactor
 ConfigTitle.TextXAlignment = Enum.TextXAlignment.Left
 ConfigTitle.Parent = ConfigSection
 
 -- Nickname Input
 local NicknameLabel = Instance.new("TextLabel")
 NicknameLabel.Name = "NicknameLabel"
-NicknameLabel.Size = UDim2.new(0.5, -5, 0, 25)
-NicknameLabel.Position = UDim2.new(0, 10, 0, 35)
+NicknameLabel.Size = UDim2.new(0.5, -5 * scaleFactor, 0, 25 * scaleFactor)
+NicknameLabel.Position = UDim2.new(0, 10 * scaleFactor, 0, 35 * scaleFactor)
 NicknameLabel.BackgroundTransparency = 1
 NicknameLabel.Text = "Target Nickname:"
 NicknameLabel.TextColor3 = Color3.fromRGB(200, 200, 200)
 NicknameLabel.Font = Enum.Font.Gotham
-NicknameLabel.TextSize = 14
+NicknameLabel.TextSize = 14 * scaleFactor
 NicknameLabel.TextXAlignment = Enum.TextXAlignment.Left
 NicknameLabel.Parent = ConfigSection
 
 local NicknameBox = Instance.new("TextBox")
 NicknameBox.Name = "NicknameBox"
-NicknameBox.Size = UDim2.new(0.5, -15, 0, 30)
-NicknameBox.Position = UDim2.new(0.5, 0, 0, 35)
+NicknameBox.Size = UDim2.new(0.5, -15 * scaleFactor, 0, 30 * scaleFactor)
+NicknameBox.Position = UDim2.new(0.5, 0, 0, 35 * scaleFactor)
 NicknameBox.BackgroundColor3 = Color3.fromRGB(50, 50, 55)
 NicknameBox.BorderSizePixel = 0
-NicknameBox.Text = "ricobading123"
+NicknameBox.Text = "margoddingba123"
 NicknameBox.PlaceholderText = "Enter nickname..."
 NicknameBox.TextColor3 = Color3.fromRGB(255, 255, 255)
 NicknameBox.Font = Enum.Font.Gotham
-NicknameBox.TextSize = 14
+NicknameBox.TextSize = 14 * scaleFactor
 NicknameBox.Parent = ConfigSection
 
 local NicknameCorner = Instance.new("UICorner")
-NicknameCorner.CornerRadius = UDim.new(0, 6)
+NicknameCorner.CornerRadius = UDim.new(0, 6 * scaleFactor)
 NicknameCorner.Parent = NicknameBox
 
 -- Amount Input
 local AmountLabel = Instance.new("TextLabel")
 AmountLabel.Name = "AmountLabel"
-AmountLabel.Size = UDim2.new(0.5, -5, 0, 25)
-AmountLabel.Position = UDim2.new(0, 10, 0, 70)
+AmountLabel.Size = UDim2.new(0.5, -5 * scaleFactor, 0, 25 * scaleFactor)
+AmountLabel.Position = UDim2.new(0, 10 * scaleFactor, 0, 70 * scaleFactor)
 AmountLabel.BackgroundTransparency = 1
 AmountLabel.Text = "Amount to Give:"
 AmountLabel.TextColor3 = Color3.fromRGB(200, 200, 200)
 AmountLabel.Font = Enum.Font.Gotham
-AmountLabel.TextSize = 14
+AmountLabel.TextSize = 14 * scaleFactor
 AmountLabel.TextXAlignment = Enum.TextXAlignment.Left
 AmountLabel.Parent = ConfigSection
 
 local AmountBox = Instance.new("TextBox")
 AmountBox.Name = "AmountBox"
-AmountBox.Size = UDim2.new(0.5, -15, 0, 30)
-AmountBox.Position = UDim2.new(0.5, 0, 0, 70)
+AmountBox.Size = UDim2.new(0.5, -15 * scaleFactor, 0, 30 * scaleFactor)
+AmountBox.Position = UDim2.new(0.5, 0, 0, 70 * scaleFactor)
 AmountBox.BackgroundColor3 = Color3.fromRGB(50, 50, 55)
 AmountBox.BorderSizePixel = 0
 AmountBox.Text = "1"
 AmountBox.PlaceholderText = "Enter amount..."
 AmountBox.TextColor3 = Color3.fromRGB(255, 255, 255)
 AmountBox.Font = Enum.Font.Gotham
-AmountBox.TextSize = 14
+AmountBox.TextSize = 14 * scaleFactor
 AmountBox.Parent = ConfigSection
 
 local AmountCorner = Instance.new("UICorner")
-AmountCorner.CornerRadius = UDim.new(0, 6)
+AmountCorner.CornerRadius = UDim.new(0, 6 * scaleFactor)
 AmountCorner.Parent = AmountBox
 
 -- Controls Section
 local ControlsSection = Instance.new("Frame")
 ControlsSection.Name = "ControlsSection"
-ControlsSection.Size = UDim2.new(1, 0, 0, 220)
-ControlsSection.Position = UDim2.new(0, 0, 0, 210) -- Adjusted position
+ControlsSection.Size = UDim2.new(1, 0, 0, 220 * scaleFactor)
+ControlsSection.Position = UDim2.new(0, 0, 0, 210 * scaleFactor)
 ControlsSection.BackgroundColor3 = Color3.fromRGB(40, 40, 45)
 ControlsSection.Parent = ContentFrame
 
 local ControlsCorner = Instance.new("UICorner")
-ControlsCorner.CornerRadius = UDim.new(0, 8)
+ControlsCorner.CornerRadius = UDim.new(0, 8 * scaleFactor)
 ControlsCorner.Parent = ControlsSection
 
 local ControlsTitle = Instance.new("TextLabel")
 ControlsTitle.Name = "ControlsTitle"
-ControlsTitle.Size = UDim2.new(1, -20, 0, 30)
-ControlsTitle.Position = UDim2.new(0, 10, 0, 0)
+ControlsTitle.Size = UDim2.new(1, -20 * scaleFactor, 0, 30 * scaleFactor)
+ControlsTitle.Position = UDim2.new(0, 10 * scaleFactor, 0, 0)
 ControlsTitle.BackgroundTransparency = 1
 ControlsTitle.Text = "Controls"
 ControlsTitle.TextColor3 = Color3.fromRGB(255, 255, 255)
 ControlsTitle.Font = Enum.Font.GothamBold
-ControlsTitle.TextSize = 16
+ControlsTitle.TextSize = 16 * scaleFactor
 ControlsTitle.TextXAlignment = Enum.TextXAlignment.Left
 ControlsTitle.Parent = ControlsSection
 
 -- Auto Trade Button
 local AutoTradeButton = Instance.new("TextButton")
 AutoTradeButton.Name = "AutoTradeButton"
-AutoTradeButton.Size = UDim2.new(1, -20, 0, 45)
-AutoTradeButton.Position = UDim2.new(0, 10, 0, 40)
+AutoTradeButton.Size = UDim2.new(1, -20 * scaleFactor, 0, 45 * scaleFactor)
+AutoTradeButton.Position = UDim2.new(0, 10 * scaleFactor, 0, 40 * scaleFactor)
 AutoTradeButton.BackgroundColor3 = Color3.fromRGB(65, 105, 225) -- Royal Blue
 AutoTradeButton.Text = "START AUTO TRADE"
 AutoTradeButton.TextColor3 = Color3.fromRGB(255, 255, 255)
 AutoTradeButton.Font = Enum.Font.GothamBold
-AutoTradeButton.TextSize = 16
+AutoTradeButton.TextSize = 16 * scaleFactor
 AutoTradeButton.Parent = ControlsSection
 
 local AutoTradeCorner = Instance.new("UICorner")
-AutoTradeCorner.CornerRadius = UDim.new(0, 8)
+AutoTradeCorner.CornerRadius = UDim.new(0, 8 * scaleFactor)
 AutoTradeCorner.Parent = AutoTradeButton
 
 -- Auto Accept Button
 local AutoAcceptButton = Instance.new("TextButton")
 AutoAcceptButton.Name = "AutoAcceptButton"
-AutoAcceptButton.Size = UDim2.new(1, -20, 0, 45)
-AutoAcceptButton.Position = UDim2.new(0, 10, 0, 95)
+AutoAcceptButton.Size = UDim2.new(1, -20 * scaleFactor, 0, 45 * scaleFactor)
+AutoAcceptButton.Position = UDim2.new(0, 10 * scaleFactor, 0, 95 * scaleFactor)
 AutoAcceptButton.BackgroundColor3 = Color3.fromRGB(50, 205, 50) -- Lime Green
 AutoAcceptButton.Text = "ENABLE AUTO ACCEPT"
 AutoAcceptButton.TextColor3 = Color3.fromRGB(255, 255, 255)
 AutoAcceptButton.Font = Enum.Font.GothamBold
-AutoAcceptButton.TextSize = 16
+AutoAcceptButton.TextSize = 16 * scaleFactor
 AutoAcceptButton.Parent = ControlsSection
 
 local AutoAcceptCorner = Instance.new("UICorner")
-AutoAcceptCorner.CornerRadius = UDim.new(0, 8)
+AutoAcceptCorner.CornerRadius = UDim.new(0, 8 * scaleFactor)
 AutoAcceptCorner.Parent = AutoAcceptButton
 
 -- Status Display
 local StatusFrame = Instance.new("Frame")
 StatusFrame.Name = "StatusFrame"
-StatusFrame.Size = UDim2.new(1, -20, 0, 40)
-StatusFrame.Position = UDim2.new(0, 10, 0, 165)
+StatusFrame.Size = UDim2.new(1, -20 * scaleFactor, 0, 40 * scaleFactor)
+StatusFrame.Position = UDim2.new(0, 10 * scaleFactor, 0, 165 * scaleFactor)
 StatusFrame.BackgroundColor3 = Color3.fromRGB(50, 50, 55)
 StatusFrame.Parent = ControlsSection
 
 local StatusCorner = Instance.new("UICorner")
-StatusCorner.CornerRadius = UDim.new(0, 8)
+StatusCorner.CornerRadius = UDim.new(0, 8 * scaleFactor)
 StatusCorner.Parent = StatusFrame
 
 local StatusLabel = Instance.new("TextLabel")
 StatusLabel.Name = "StatusLabel"
-StatusLabel.Size = UDim2.new(1, -20, 1, 0)
-StatusLabel.Position = UDim2.new(0, 10, 0, 0)
+StatusLabel.Size = UDim2.new(1, -20 * scaleFactor, 1, 0)
+StatusLabel.Position = UDim2.new(0, 10 * scaleFactor, 0, 0)
 StatusLabel.BackgroundTransparency = 1
 StatusLabel.Text = "Status: Ready"
 StatusLabel.TextColor3 = Color3.fromRGB(200, 200, 200)
 StatusLabel.Font = Enum.Font.Gotham
-StatusLabel.TextSize = 14
+StatusLabel.TextSize = 14 * scaleFactor
 StatusLabel.TextXAlignment = Enum.TextXAlignment.Left
 StatusLabel.Parent = StatusFrame
 
 -- Variables
 local isDragging = false
+local isMinimized = false
 local dragStart, startPos
 local autoTradeRunning = false
 local autoAcceptEnabled = false
 
--- Make GUI Draggable
+-- Function to scale touch input for mobile
+local function getScaledTouchInput(input)
+    if input.UserInputType == Enum.UserInputType.Touch then
+        local viewportSize = workspace.CurrentCamera.ViewportSize
+        local guiScale = ScreenGui.AbsoluteSize / viewportSize
+        return input.Position * guiScale
+    end
+    return input.Position
+end
+
+-- Make GUI Draggable (with mobile support)
 TitleBar.InputBegan:Connect(function(input)
-    if input.UserInputType == Enum.UserInputType.MouseButton1 then
+    if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
         isDragging = true
-        dragStart = input.Position
+        dragStart = getScaledTouchInput(input)
         startPos = MainFrame.Position
-        input.Changed:Connect(function()
+        local conn
+        conn = input.Changed:Connect(function()
             if input.UserInputState == Enum.UserInputState.End then
                 isDragging = false
+                conn:Disconnect()
             end
         end)
     end
 end)
 
 TitleBar.InputChanged:Connect(function(input)
-    if input.UserInputType == Enum.UserInputType.MouseMovement and isDragging then
-        local delta = input.Position - dragStart
+    if (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) and isDragging then
+        local currentPos = getScaledTouchInput(input)
+        local delta = currentPos - dragStart
         MainFrame.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, 
                                       startPos.Y.Scale, startPos.Y.Offset + delta.Y)
     end
 end)
 
+-- Make Minimized Bar Draggable
+MinimizedBar.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+        isDragging = true
+        dragStart = getScaledTouchInput(input)
+        startPos = MinimizedBar.Position
+        local conn
+        conn = input.Changed:Connect(function()
+            if input.UserInputState == Enum.UserInputState.End then
+                isDragging = false
+                conn:Disconnect()
+            end
+        end)
+    end
+end)
+
+MinimizedBar.InputChanged:Connect(function(input)
+    if (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) and isDragging then
+        local currentPos = getScaledTouchInput(input)
+        local delta = currentPos - dragStart
+        MinimizedBar.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, 
+                                         startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+    end
+end)
+
+-- Function to minimize GUI
+local function minimizeGUI()
+    isMinimized = true
+    MainFrame.Visible = false
+    MinimizedBar.Visible = true
+    
+    -- Show counter in minimized bar if needed
+    local currentCount = countEsokSekolah()
+    MinimizedTitle.Text = "Auto Trade [" .. currentCount .. "]"
+end
+
+-- Function to maximize GUI
+local function maximizeGUI()
+    isMinimized = false
+    MainFrame.Visible = true
+    MinimizedBar.Visible = false
+end
+
+-- Button Functionality
+MinimizeButton.MouseButton1Click:Connect(minimizeGUI)
+MaximizeButton.MouseButton1Click:Connect(maximizeGUI)
+
+-- Touch support for mobile
+if isMobile then
+    MinimizeButton.TouchTap:Connect(minimizeGUI)
+    MaximizeButton.TouchTap:Connect(maximizeGUI)
+end
+
 -- Close Button Functionality
 CloseButton.MouseButton1Click:Connect(function()
     ScreenGui:Destroy()
 end)
+
+if isMobile then
+    CloseButton.TouchTap:Connect(function()
+        ScreenGui:Destroy()
+    end)
+end
 
 -- Function to count Esok Sekolah items
 local function countEsokSekolah()
@@ -357,6 +510,11 @@ local function updateCounter()
     local count = countEsokSekolah()
     CounterLabel.Text = tostring(count)
     
+    -- Update minimized bar if minimized
+    if isMinimized then
+        MinimizedTitle.Text = "Auto Trade [" .. count .. "]"
+    end
+    
     -- Change color based on count
     if count == 0 then
         CounterLabel.TextColor3 = Color3.fromRGB(255, 100, 100) -- Red for 0
@@ -379,57 +537,46 @@ local function setupCounterListeners()
     
     -- Track backpack changes
     if Player.Backpack then
-        -- Listen for items added to backpack
         Player.Backpack.ChildAdded:Connect(function(child)
             if isEsokSekolah(child) then
-                wait(0.1) -- Small delay to ensure item is properly added
+                wait(0.1)
                 updateCounter()
-                print("Gained Esok Sekolah from backpack")
             end
         end)
         
-        -- Listen for items removed from backpack
         Player.Backpack.ChildRemoved:Connect(function(child)
             if isEsokSekolah(child) then
-                wait(0.1) -- Small delay to ensure item is properly removed
+                wait(0.1)
                 updateCounter()
-                print("Lost Esok Sekolah from backpack")
             end
         end)
     end
     
-    -- Track character changes (equip/unequip)
+    -- Track character changes
     if Player.Character then
-        -- Listen for items equipped to character
         Player.Character.ChildAdded:Connect(function(child)
             if child:IsA("Tool") and isEsokSekolah(child) then
-                wait(0.1) -- Small delay
+                wait(0.1)
                 updateCounter()
-                print("Equipped Esok Sekolah")
             end
         end)
         
-        -- Listen for items unequipped from character
         Player.Character.ChildRemoved:Connect(function(child)
             if child:IsA("Tool") and isEsokSekolah(child) then
-                wait(0.1) -- Small delay
+                wait(0.1)
                 updateCounter()
-                print("Unequipped Esok Sekolah")
             end
         end)
     end
     
     -- Handle character respawns
     Player.CharacterAdded:Connect(function(character)
-        -- Wait for character to fully load
         wait(1)
         
-        -- Set up listeners for new character
         character.ChildAdded:Connect(function(child)
             if child:IsA("Tool") and isEsokSekolah(child) then
                 wait(0.1)
                 updateCounter()
-                print("Equipped Esok Sekolah (new character)")
             end
         end)
         
@@ -437,20 +584,17 @@ local function setupCounterListeners()
             if child:IsA("Tool") and isEsokSekolah(child) then
                 wait(0.1)
                 updateCounter()
-                print("Unequipped Esok Sekolah (new character)")
             end
         end)
         
-        -- Update counter after respawn
         updateCounter()
-        print("Character respawned, counter updated")
     end)
     
-    -- Also set up a periodic check as backup (every 3 seconds)
+    -- Backup update every 3 seconds
     spawn(function()
         while true do
             wait(3)
-            updateCounter() -- Backup update
+            updateCounter()
         end
     end)
 end
@@ -504,7 +648,6 @@ local function startAutoTrade()
         return
     end
     
-    -- Check inventory count
     local currentCount = countEsokSekolah()
     if currentCount == 0 then
         updateStatus("No Esok Sekolah found!", Color3.fromRGB(255, 100, 100))
@@ -523,9 +666,8 @@ local function startAutoTrade()
     
     spawn(function()
         local itemsTraded = 0
-        
-        -- Get all items once
         local items = {}
+        
         for _, item in pairs(Player.Backpack:GetChildren()) do
             if item.Name == "Esok Sekolah" then
                 table.insert(items, item)
@@ -537,7 +679,6 @@ local function startAutoTrade()
             
             local brainrot = items[i]
             if not brainrot or brainrot.Parent ~= Player.Backpack then
-                -- Item no longer available, refresh list
                 items = {}
                 for _, item in pairs(Player.Backpack:GetChildren()) do
                     if item.Name == "Esok Sekolah" then
@@ -552,7 +693,6 @@ local function startAutoTrade()
             end
             
             if brainrot and brainrot.Name == "Esok Sekolah" and brainrot.Parent == Player.Backpack then
-                -- Attempt to trade this specific item
                 local tradeAttempts = 0
                 local maxAttempts = 10
                 local traded = false
@@ -560,19 +700,15 @@ local function startAutoTrade()
                 while not traded and tradeAttempts < maxAttempts and autoTradeRunning do
                     tradeAttempts = tradeAttempts + 1
                     
-                    -- Equip the item
                     brainrot.Parent = Player.Character
                     task.wait(0.1)
                     
-                    -- Find target player
                     local targetPlayer = game.Players[getgenv().nickname]
                     if targetPlayer and targetPlayer.Character and targetPlayer.Character:FindFirstChild("HumanoidRootPart") then
-                        -- Fire trade prompt
                         fireproximityprompt(targetPlayer.Character.HumanoidRootPart.TradePrompt)
                         itemsTraded = itemsTraded + 1
                         updateStatus("Trading " .. itemsTraded .. "/" .. amount, Color3.fromRGB(65, 105, 225))
                         
-                        -- Wait for trade to complete
                         local waitTime = 0
                         while waitTime < 3 and autoTradeRunning do
                             if not Player.Character:FindFirstChild("Esok Sekolah") then
@@ -584,28 +720,26 @@ local function startAutoTrade()
                         end
                     end
                     
-                    -- If item is still equipped, unequip it
                     if Player.Character:FindFirstChild("Esok Sekolah") then
                         Player.Character["Esok Sekolah"].Parent = Player.Backpack
                     end
                     
-                    task.wait(0.5) -- Wait before next attempt
+                    task.wait(0.5)
                 end
                 
                 if traded then
                     updateStatus("Sent " .. itemsTraded .. "/" .. amount, Color3.fromRGB(65, 105, 225))
-                    -- Counter will auto-update via event listeners
                 else
                     updateStatus("Failed to send item", Color3.fromRGB(255, 100, 100))
                 end
                 
-                task.wait(1) -- Delay between items
+                task.wait(1)
             end
         end
         
         autoTradeRunning = false
         updateStatus("Trade Complete", Color3.fromRGB(50, 205, 50))
-        updateCounter() -- Final update
+        updateCounter()
     end)
 end
 
@@ -631,7 +765,7 @@ AutoAcceptButton.MouseButton1Click:Connect(function()
     if not autoAcceptEnabled then
         setupAutoAccept()
         AutoAcceptButton.Text = "DISABLE AUTO ACCEPT"
-        AutoAcceptButton.BackgroundColor3 = Color3.fromRGB(220, 20, 60) -- Crimson
+        AutoAcceptButton.BackgroundColor3 = Color3.fromRGB(220, 20, 60)
     else
         autoAcceptEnabled = false
         AutoAcceptButton.Text = "ENABLE AUTO ACCEPT"
@@ -640,51 +774,53 @@ AutoAcceptButton.MouseButton1Click:Connect(function()
     end
 end)
 
--- Button Hover Effects
-local function setupButtonHover(button, normalColor, hoverColor)
-    button.MouseEnter:Connect(function()
-        if (button == AutoTradeButton and not autoTradeRunning) or 
-           (button == AutoAcceptButton and not autoAcceptEnabled) or
-           (button == AutoTradeButton and autoTradeRunning) or
-           (button == AutoAcceptButton and autoAcceptEnabled) then
-            button.BackgroundColor3 = hoverColor
+-- Mobile touch support
+if isMobile then
+    AutoTradeButton.TouchTap:Connect(function()
+        if not autoTradeRunning then
+            startAutoTrade()
+            AutoTradeButton.Text = "STOP AUTO TRADE"
+            AutoTradeButton.BackgroundColor3 = Color3.fromRGB(220, 20, 60)
+        else
+            stopAutoTrade()
+            AutoTradeButton.Text = "START AUTO TRADE"
+            AutoTradeButton.BackgroundColor3 = Color3.fromRGB(65, 105, 225)
         end
     end)
     
-    button.MouseLeave:Connect(function()
-        if button == AutoTradeButton then
-            button.BackgroundColor3 = autoTradeRunning and Color3.fromRGB(220, 20, 60) or Color3.fromRGB(65, 105, 225)
-        elseif button == AutoAcceptButton then
-            button.BackgroundColor3 = autoAcceptEnabled and Color3.fromRGB(220, 20, 60) or Color3.fromRGB(50, 205, 50)
+    AutoAcceptButton.TouchTap:Connect(function()
+        if not autoAcceptEnabled then
+            setupAutoAccept()
+            AutoAcceptButton.Text = "DISABLE AUTO ACCEPT"
+            AutoAcceptButton.BackgroundColor3 = Color3.fromRGB(220, 20, 60)
+        else
+            autoAcceptEnabled = false
+            AutoAcceptButton.Text = "ENABLE AUTO ACCEPT"
+            AutoAcceptButton.BackgroundColor3 = Color3.fromRGB(50, 205, 50)
+            updateStatus("Auto Accept Disabled", Color3.fromRGB(255, 100, 100))
         end
     end)
 end
 
-setupButtonHover(AutoTradeButton, Color3.fromRGB(65, 105, 225), Color3.fromRGB(75, 115, 235))
-setupButtonHover(AutoAcceptButton, Color3.fromRGB(50, 205, 50), Color3.fromRGB(60, 215, 60))
-
--- TextBox Focus Effects
-local function setupTextBoxFocus(textbox)
-    textbox.Focused:Connect(function()
-        textbox.BackgroundColor3 = Color3.fromRGB(60, 60, 65)
-    end)
+-- Button Hover Effects (desktop only)
+if not isMobile then
+    local function setupButtonHover(button, normalColor, hoverColor)
+        button.MouseEnter:Connect(function()
+            if (button == AutoTradeButton and not autoTradeRunning) or 
+               (button == AutoAcceptButton and not autoAcceptEnabled) or
+               (button == AutoTradeButton and autoTradeRunning) or
+               (button == AutoAcceptButton and autoAcceptEnabled) then
+                button.BackgroundColor3 = hoverColor
+            end
+        end)
+        
+        button.MouseLeave:Connect(function()
+            if button == AutoTradeButton then
+                button.BackgroundColor3 = autoTradeRunning and Color3.fromRGB(220, 20, 60) or Color3.fromRGB(65, 105, 225)
+            elseif button == AutoAcceptButton then
+                button.BackgroundColor3 = autoAcceptEnabled and Color3.fromRGB(220, 20, 60) or Color3.fromRGB(50, 205, 50)
+            end
+        end)
+    end
     
-    textbox.FocusLost:Connect(function()
-        textbox.BackgroundColor3 = Color3.fromRGB(50, 50, 55)
-    end)
-end
-
-setupTextBoxFocus(NicknameBox)
-setupTextBoxFocus(AmountBox)
-
--- Setup the automatic counter listeners
-setupCounterListeners()
-
--- Initial Status
-updateStatus("Ready to start", Color3.fromRGB(200, 200, 200))
-
--- Notify user
-print("Auto Trade GUI Loaded!")
-print("Esok Sekolah counter active - automatically updates when you gain/lose items")
-print("Drag the title bar to move the window")
-print("Enter target nickname and amount, then click buttons to start")
+    setupButtonHover(AutoTradeButton, Color3.fromRGB(65, 105,
