@@ -825,4 +825,48 @@ if not isMobile then
             if button == AutoTradeButton then
                 button.BackgroundColor3 = autoTradeRunning and Color3.fromRGB(220, 20, 60) or Color3.fromRGB(65, 105, 225)
             elseif button == AutoAcceptButton then
-                button.BackgroundColor3 = autoAcceptEnabled and Color3.fromRGB
+                button.BackgroundColor3 = autoAcceptEnabled and Color3.fromRGB(220, 20, 60) or Color3.fromRGB(50, 205, 50)
+            end
+        end)
+    end
+    
+    setupButtonHover(AutoTradeButton, Color3.fromRGB(65, 105, 225), Color3.fromRGB(75, 115, 235))
+    setupButtonHover(AutoAcceptButton, Color3.fromRGB(50, 205, 50), Color3.fromRGB(60, 215, 60))
+    
+    -- TextBox Focus Effects
+    local function setupTextBoxFocus(textbox)
+        textbox.Focused:Connect(function()
+            textbox.BackgroundColor3 = Color3.fromRGB(60, 60, 65)
+        end)
+        
+        textbox.FocusLost:Connect(function()
+            textbox.BackgroundColor3 = Color3.fromRGB(50, 50, 55)
+        end)
+    end
+    
+    setupTextBoxFocus(NicknameBox)
+    setupTextBoxFocus(AmountBox)
+end
+
+-- Setup the automatic counter listeners
+setupCounterListeners()
+
+-- Initial Status
+updateStatus("Ready to start", Color3.fromRGB(200, 200, 200))
+
+-- Notify user
+print("Auto Trade GUI Loaded Successfully!")
+print("Device detected:", isMobile and "Mobile" or "Desktop")
+print("GUI Scale Factor:", scaleFactor)
+print("Drag the title bar to move the window")
+print("Click '_' to minimize, '^' to maximize")
+print("Enter target nickname and amount, then click buttons to start")
+
+-- Force GUI to be visible
+ScreenGui.Enabled = true
+MainFrame.Visible = true
+
+-- Debug: Check if GUI is visible
+wait(1)
+print("GUI should now be visible on your screen!")
+print("If not visible, check executor console for errors")
