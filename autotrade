@@ -10,6 +10,10 @@ ScreenGui.Name = "AutoTradeGUI"
 ScreenGui.Parent = Player.PlayerGui
 ScreenGui.ResetOnSpawn = false
 ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+ScreenGui.Enabled = true
+
+-- Simple test to see if GUI is being created
+print("Creating GUI...")
 
 -- Detect if running on mobile
 local isMobile = UserInputService.TouchEnabled and not UserInputService.MouseEnabled
@@ -380,6 +384,8 @@ local isMinimized = false
 local dragStart, startPos
 local autoTradeRunning = false
 local autoAcceptEnabled = false
+
+print("GUI elements created successfully!")
 
 -- Function to scale touch input for mobile
 local function getScaledTouchInput(input)
@@ -808,9 +814,10 @@ if not isMobile then
         button.MouseEnter:Connect(function()
             if (button == AutoTradeButton and not autoTradeRunning) or 
                (button == AutoAcceptButton and not autoAcceptEnabled) or
-               (button == AutoTradeButton and autoTradeRunning) or
                (button == AutoAcceptButton and autoAcceptEnabled) then
                 button.BackgroundColor3 = hoverColor
+            elseif button == AutoTradeButton and autoTradeRunning then
+                button.BackgroundColor3 = Color3.fromRGB(200, 60, 80)
             end
         end)
         
@@ -818,9 +825,4 @@ if not isMobile then
             if button == AutoTradeButton then
                 button.BackgroundColor3 = autoTradeRunning and Color3.fromRGB(220, 20, 60) or Color3.fromRGB(65, 105, 225)
             elseif button == AutoAcceptButton then
-                button.BackgroundColor3 = autoAcceptEnabled and Color3.fromRGB(220, 20, 60) or Color3.fromRGB(50, 205, 50)
-            end
-        end)
-    end
-    
-    setupButtonHover(AutoTradeButton, Color3.fromRGB(65, 105,
+                button.BackgroundColor3 = autoAcceptEnabled and Color3.fromRGB
