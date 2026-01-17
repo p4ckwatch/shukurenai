@@ -1,0 +1,508 @@
+-- GUI Setup
+local Player = game:GetService("Players").LocalPlayer
+local TweenService = game:GetService("TweenService")
+local UserInputService = game:GetService("UserInputService")
+
+-- Create ScreenGui
+local ScreenGui = Instance.new("ScreenGui")
+ScreenGui.Name = "AutoTradeGUI"
+ScreenGui.Parent = Player.PlayerGui
+ScreenGui.ResetOnSpawn = false
+
+-- Main Frame
+local MainFrame = Instance.new("Frame")
+MainFrame.Name = "MainFrame"
+MainFrame.Size = UDim2.new(0, 350, 0, 400)
+MainFrame.Position = UDim2.new(0.5, -175, 0.5, -200)
+MainFrame.AnchorPoint = Vector2.new(0.5, 0.5)
+MainFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 35)
+MainFrame.BorderSizePixel = 0
+MainFrame.Parent = ScreenGui
+
+-- Corner Radius
+local UICorner = Instance.new("UICorner")
+UICorner.CornerRadius = UDim.new(0, 12)
+UICorner.Parent = MainFrame
+
+-- Title Bar
+local TitleBar = Instance.new("Frame")
+TitleBar.Name = "TitleBar"
+TitleBar.Size = UDim2.new(1, 0, 0, 40)
+TitleBar.BackgroundColor3 = Color3.fromRGB(25, 25, 30)
+TitleBar.Parent = MainFrame
+
+local TitleCorner = Instance.new("UICorner")
+TitleCorner.CornerRadius = UDim.new(0, 12)
+TitleCorner.Parent = TitleBar
+
+local Title = Instance.new("TextLabel")
+Title.Name = "Title"
+Title.Size = UDim2.new(1, -20, 1, 0)
+Title.Position = UDim2.new(0, 10, 0, 0)
+Title.BackgroundTransparency = 1
+Title.Text = "Auto Trade System"
+Title.TextColor3 = Color3.fromRGB(255, 255, 255)
+Title.Font = Enum.Font.GothamBold
+Title.TextSize = 18
+Title.TextXAlignment = Enum.TextXAlignment.Left
+Title.Parent = TitleBar
+
+local CloseButton = Instance.new("TextButton")
+CloseButton.Name = "CloseButton"
+CloseButton.Size = UDim2.new(0, 30, 0, 30)
+CloseButton.Position = UDim2.new(1, -35, 0.5, -15)
+CloseButton.AnchorPoint = Vector2.new(0.5, 0.5)
+CloseButton.BackgroundColor3 = Color3.fromRGB(40, 40, 45)
+CloseButton.Text = "X"
+CloseButton.TextColor3 = Color3.fromRGB(255, 100, 100)
+CloseButton.Font = Enum.Font.GothamBold
+CloseButton.TextSize = 16
+CloseButton.Parent = TitleBar
+
+local CloseCorner = Instance.new("UICorner")
+CloseCorner.CornerRadius = UDim.new(0, 6)
+CloseCorner.Parent = CloseButton
+
+-- Content Frame
+local ContentFrame = Instance.new("Frame")
+ContentFrame.Name = "ContentFrame"
+ContentFrame.Size = UDim2.new(1, -20, 1, -60)
+ContentFrame.Position = UDim2.new(0, 10, 0, 50)
+ContentFrame.BackgroundTransparency = 1
+ContentFrame.Parent = MainFrame
+
+-- Configurations Section
+local ConfigSection = Instance.new("Frame")
+ConfigSection.Name = "ConfigSection"
+ConfigSection.Size = UDim2.new(1, 0, 0, 130)
+ConfigSection.BackgroundColor3 = Color3.fromRGB(40, 40, 45)
+ConfigSection.Parent = ContentFrame
+
+local ConfigCorner = Instance.new("UICorner")
+ConfigCorner.CornerRadius = UDim.new(0, 8)
+ConfigCorner.Parent = ConfigSection
+
+local ConfigTitle = Instance.new("TextLabel")
+ConfigTitle.Name = "ConfigTitle"
+ConfigTitle.Size = UDim2.new(1, -20, 0, 30)
+ConfigTitle.Position = UDim2.new(0, 10, 0, 0)
+ConfigTitle.BackgroundTransparency = 1
+ConfigTitle.Text = "Configuration"
+ConfigTitle.TextColor3 = Color3.fromRGB(255, 255, 255)
+ConfigTitle.Font = Enum.Font.GothamBold
+ConfigTitle.TextSize = 16
+ConfigTitle.TextXAlignment = Enum.TextXAlignment.Left
+ConfigTitle.Parent = ConfigSection
+
+-- Nickname Input
+local NicknameLabel = Instance.new("TextLabel")
+NicknameLabel.Name = "NicknameLabel"
+NicknameLabel.Size = UDim2.new(0.5, -5, 0, 25)
+NicknameLabel.Position = UDim2.new(0, 10, 0, 35)
+NicknameLabel.BackgroundTransparency = 1
+NicknameLabel.Text = "Target Nickname:"
+NicknameLabel.TextColor3 = Color3.fromRGB(200, 200, 200)
+NicknameLabel.Font = Enum.Font.Gotham
+NicknameLabel.TextSize = 14
+NicknameLabel.TextXAlignment = Enum.TextXAlignment.Left
+NicknameLabel.Parent = ConfigSection
+
+local NicknameBox = Instance.new("TextBox")
+NicknameBox.Name = "NicknameBox"
+NicknameBox.Size = UDim2.new(0.5, -15, 0, 30)
+NicknameBox.Position = UDim2.new(0.5, 0, 0, 35)
+NicknameBox.BackgroundColor3 = Color3.fromRGB(50, 50, 55)
+NicknameBox.BorderSizePixel = 0
+NicknameBox.Text = "margoddingba123"
+NicknameBox.PlaceholderText = "Enter nickname..."
+NicknameBox.TextColor3 = Color3.fromRGB(255, 255, 255)
+NicknameBox.Font = Enum.Font.Gotham
+NicknameBox.TextSize = 14
+NicknameBox.Parent = ConfigSection
+
+local NicknameCorner = Instance.new("UICorner")
+NicknameCorner.CornerRadius = UDim.new(0, 6)
+NicknameCorner.Parent = NicknameBox
+
+-- Amount Input
+local AmountLabel = Instance.new("TextLabel")
+AmountLabel.Name = "AmountLabel"
+AmountLabel.Size = UDim2.new(0.5, -5, 0, 25)
+AmountLabel.Position = UDim2.new(0, 10, 0, 70)
+AmountLabel.BackgroundTransparency = 1
+AmountLabel.Text = "Amount to Give:"
+AmountLabel.TextColor3 = Color3.fromRGB(200, 200, 200)
+AmountLabel.Font = Enum.Font.Gotham
+AmountLabel.TextSize = 14
+AmountLabel.TextXAlignment = Enum.TextXAlignment.Left
+AmountLabel.Parent = ConfigSection
+
+local AmountBox = Instance.new("TextBox")
+AmountBox.Name = "AmountBox"
+AmountBox.Size = UDim2.new(0.5, -15, 0, 30)
+AmountBox.Position = UDim2.new(0.5, 0, 0, 70)
+AmountBox.BackgroundColor3 = Color3.fromRGB(50, 50, 55)
+AmountBox.BorderSizePixel = 0
+AmountBox.Text = "1"
+AmountBox.PlaceholderText = "Enter amount..."
+AmountBox.TextColor3 = Color3.fromRGB(255, 255, 255)
+AmountBox.Font = Enum.Font.Gotham
+AmountBox.TextSize = 14
+AmountBox.Parent = ConfigSection
+
+local AmountCorner = Instance.new("UICorner")
+AmountCorner.CornerRadius = UDim.new(0, 6)
+AmountCorner.Parent = AmountBox
+
+-- Controls Section
+local ControlsSection = Instance.new("Frame")
+ControlsSection.Name = "ControlsSection"
+ControlsSection.Size = UDim2.new(1, 0, 0, 220)
+ControlsSection.Position = UDim2.new(0, 0, 0, 140)
+ControlsSection.BackgroundColor3 = Color3.fromRGB(40, 40, 45)
+ControlsSection.Parent = ContentFrame
+
+local ControlsCorner = Instance.new("UICorner")
+ControlsCorner.CornerRadius = UDim.new(0, 8)
+ControlsCorner.Parent = ControlsSection
+
+local ControlsTitle = Instance.new("TextLabel")
+ControlsTitle.Name = "ControlsTitle"
+ControlsTitle.Size = UDim2.new(1, -20, 0, 30)
+ControlsTitle.Position = UDim2.new(0, 10, 0, 0)
+ControlsTitle.BackgroundTransparency = 1
+ControlsTitle.Text = "Controls"
+ControlsTitle.TextColor3 = Color3.fromRGB(255, 255, 255)
+ControlsTitle.Font = Enum.Font.GothamBold
+ControlsTitle.TextSize = 16
+ControlsTitle.TextXAlignment = Enum.TextXAlignment.Left
+ControlsTitle.Parent = ControlsSection
+
+-- Auto Trade Button
+local AutoTradeButton = Instance.new("TextButton")
+AutoTradeButton.Name = "AutoTradeButton"
+AutoTradeButton.Size = UDim2.new(1, -20, 0, 45)
+AutoTradeButton.Position = UDim2.new(0, 10, 0, 40)
+AutoTradeButton.BackgroundColor3 = Color3.fromRGB(65, 105, 225) -- Royal Blue
+AutoTradeButton.Text = "START AUTO TRADE"
+AutoTradeButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+AutoTradeButton.Font = Enum.Font.GothamBold
+AutoTradeButton.TextSize = 16
+AutoTradeButton.Parent = ControlsSection
+
+local AutoTradeCorner = Instance.new("UICorner")
+AutoTradeCorner.CornerRadius = UDim.new(0, 8)
+AutoTradeCorner.Parent = AutoTradeButton
+
+-- Auto Accept Button
+local AutoAcceptButton = Instance.new("TextButton")
+AutoAcceptButton.Name = "AutoAcceptButton"
+AutoAcceptButton.Size = UDim2.new(1, -20, 0, 45)
+AutoAcceptButton.Position = UDim2.new(0, 10, 0, 95)
+AutoAcceptButton.BackgroundColor3 = Color3.fromRGB(50, 205, 50) -- Lime Green
+AutoAcceptButton.Text = "ENABLE AUTO ACCEPT"
+AutoAcceptButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+AutoAcceptButton.Font = Enum.Font.GothamBold
+AutoAcceptButton.TextSize = 16
+AutoAcceptButton.Parent = ControlsSection
+
+local AutoAcceptCorner = Instance.new("UICorner")
+AutoAcceptCorner.CornerRadius = UDim.new(0, 8)
+AutoAcceptCorner.Parent = AutoAcceptButton
+
+-- Status Display
+local StatusFrame = Instance.new("Frame")
+StatusFrame.Name = "StatusFrame"
+StatusFrame.Size = UDim2.new(1, -20, 0, 40)
+StatusFrame.Position = UDim2.new(0, 10, 0, 165)
+StatusFrame.BackgroundColor3 = Color3.fromRGB(50, 50, 55)
+StatusFrame.Parent = ControlsSection
+
+local StatusCorner = Instance.new("UICorner")
+StatusCorner.CornerRadius = UDim.new(0, 8)
+StatusCorner.Parent = StatusFrame
+
+local StatusLabel = Instance.new("TextLabel")
+StatusLabel.Name = "StatusLabel"
+StatusLabel.Size = UDim2.new(1, -20, 1, 0)
+StatusLabel.Position = UDim2.new(0, 10, 0, 0)
+StatusLabel.BackgroundTransparency = 1
+StatusLabel.Text = "Status: Ready"
+StatusLabel.TextColor3 = Color3.fromRGB(200, 200, 200)
+StatusLabel.Font = Enum.Font.Gotham
+StatusLabel.TextSize = 14
+StatusLabel.TextXAlignment = Enum.TextXAlignment.Left
+StatusLabel.Parent = StatusFrame
+
+-- Variables
+local isDragging = false
+local dragStart, startPos
+local autoTradeRunning = false
+local autoAcceptEnabled = false
+
+-- Make GUI Draggable
+TitleBar.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 then
+        isDragging = true
+        dragStart = input.Position
+        startPos = MainFrame.Position
+        input.Changed:Connect(function()
+            if input.UserInputState == Enum.UserInputState.End then
+                isDragging = false
+            end
+        end)
+    end
+end)
+
+TitleBar.InputChanged:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseMovement and isDragging then
+        local delta = input.Position - dragStart
+        MainFrame.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, 
+                                      startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+    end
+end)
+
+-- Close Button Functionality
+CloseButton.MouseButton1Click:Connect(function()
+    ScreenGui:Destroy()
+end)
+
+-- Update Status Function
+local function updateStatus(message, color)
+    StatusLabel.Text = "Status: " .. message
+    StatusLabel.TextColor3 = color or Color3.fromRGB(200, 200, 200)
+end
+
+-- Function to count Esok Sekolah items
+local function countEsokSekolah()
+    local count = 0
+    for _, item in pairs(Player.Backpack:GetChildren()) do
+        if item.Name == "Esok Sekolah" then
+            count = count + 1
+        end
+    end
+    return count
+end
+
+-- Function to get Esok Sekolah items
+local function getEsokSekolahItems()
+    local items = {}
+    for _, item in pairs(Player.Backpack:GetChildren()) do
+        if item.Name == "Esok Sekolah" then
+            table.insert(items, item)
+        end
+    end
+    return items
+end
+
+-- Your Original Scripts Modified with GUI Controls
+local function setupAutoAccept()
+    if autoAcceptEnabled then return end
+    
+    updateStatus("Auto Accept Enabled", Color3.fromRGB(50, 205, 50))
+    
+    Player.Character.ChildAdded:Connect(function(brainrot)
+        if brainrot:IsA("Tool") then
+            brainrot.Parent = Player.Backpack
+        end
+    end)
+    
+    local events = {
+        "MouseButton1Click",
+        "MouseButton1Down",
+        "Activated",
+        "MouseButton1Up"
+    }
+    
+    game:GetService("Players").LocalPlayer.PlayerGui.GiftRequest:GetPropertyChangedSignal("Enabled"):Connect(function()
+        if game:GetService("Players").LocalPlayer.PlayerGui.GiftRequest.Enabled == true then
+            for i, v in pairs(events) do
+                for i, v in pairs(getconnections(game:GetService("Players").LocalPlayer.PlayerGui.GiftRequest.Frame.Accept.TextButton[v])) do
+                    v:Fire()
+                end
+            end
+        end
+    end)
+    
+    autoAcceptEnabled = true
+end
+
+local function startAutoTrade()
+    if autoTradeRunning then return end
+    
+    local nickname = NicknameBox.Text
+    local amount = tonumber(AmountBox.Text) or 1
+    
+    if nickname == "" then
+        updateStatus("Enter nickname first!", Color3.fromRGB(255, 100, 100))
+        return
+    end
+    
+    -- Check inventory count
+    local currentCount = countEsokSekolah()
+    if currentCount == 0 then
+        updateStatus("No Esok Sekolah found!", Color3.fromRGB(255, 100, 100))
+        return
+    end
+    
+    if amount > currentCount then
+        updateStatus("Only have " .. currentCount .. " items", Color3.fromRGB(255, 165, 0))
+        AmountBox.Text = tostring(currentCount)
+        amount = currentCount
+    end
+    
+    getgenv().nickname = nickname
+    autoTradeRunning = true
+    updateStatus("Trading " .. amount .. " items...", Color3.fromRGB(65, 105, 225))
+    
+    spawn(function()
+        local itemsTraded = 0
+        
+        -- Get all items once
+        local items = getEsokSekolahItems()
+        
+        for i = 1, math.min(amount, #items) do
+            if not autoTradeRunning then break end
+            
+            local brainrot = items[i]
+            if not brainrot or brainrot.Parent ~= Player.Backpack then
+                -- Item no longer available, try to get next one
+                items = getEsokSekolahItems()
+                if i <= #items then
+                    brainrot = items[i]
+                else
+                    break
+                end
+            end
+            
+            if brainrot and brainrot.Name == "Esok Sekolah" and brainrot.Parent == Player.Backpack then
+                -- Attempt to trade this specific item
+                local tradeAttempts = 0
+                local maxAttempts = 10
+                local traded = false
+                
+                while not traded and tradeAttempts < maxAttempts and autoTradeRunning do
+                    tradeAttempts = tradeAttempts + 1
+                    
+                    -- Equip the item
+                    brainrot.Parent = Player.Character
+                    task.wait(0.1)
+                    
+                    -- Find target player
+                    local targetPlayer = game.Players[getgenv().nickname]
+                    if targetPlayer and targetPlayer.Character and targetPlayer.Character:FindFirstChild("HumanoidRootPart") then
+                        -- Fire trade prompt
+                        fireproximityprompt(targetPlayer.Character.HumanoidRootPart.TradePrompt)
+                        itemsTraded = itemsTraded + 1
+                        updateStatus("Trading " .. itemsTraded .. "/" .. amount, Color3.fromRGB(65, 105, 225))
+                        
+                        -- Wait for trade to complete
+                        local waitTime = 0
+                        while waitTime < 3 and autoTradeRunning do
+                            if not Player.Character:FindFirstChild("Esok Sekolah") then
+                                traded = true
+                                break
+                            end
+                            task.wait(0.1)
+                            waitTime = waitTime + 0.1
+                        end
+                    end
+                    
+                    -- If item is still equipped, unequip it
+                    if Player.Character:FindFirstChild("Esok Sekolah") then
+                        Player.Character["Esok Sekolah"].Parent = Player.Backpack
+                    end
+                    
+                    task.wait(0.5) -- Wait before next attempt
+                end
+                
+                if traded then
+                    updateStatus("Sent " .. itemsTraded .. "/" .. amount, Color3.fromRGB(65, 105, 225))
+                else
+                    updateStatus("Failed to send item", Color3.fromRGB(255, 100, 100))
+                end
+                
+                task.wait(1) -- Delay between items
+            end
+        end
+        
+        autoTradeRunning = false
+        updateStatus("Trade Complete", Color3.fromRGB(50, 205, 50))
+    end)
+end
+
+local function stopAutoTrade()
+    autoTradeRunning = false
+    updateStatus("Auto Trade Stopped", Color3.fromRGB(255, 100, 100))
+end
+
+-- Button Functionality with Visual Feedback
+AutoTradeButton.MouseButton1Click:Connect(function()
+    if not autoTradeRunning then
+        startAutoTrade()
+        AutoTradeButton.Text = "STOP AUTO TRADE"
+        AutoTradeButton.BackgroundColor3 = Color3.fromRGB(220, 20, 60) -- Crimson
+    else
+        stopAutoTrade()
+        AutoTradeButton.Text = "START AUTO TRADE"
+        AutoTradeButton.BackgroundColor3 = Color3.fromRGB(65, 105, 225)
+    end
+end)
+
+AutoAcceptButton.MouseButton1Click:Connect(function()
+    if not autoAcceptEnabled then
+        setupAutoAccept()
+        AutoAcceptButton.Text = "DISABLE AUTO ACCEPT"
+        AutoAcceptButton.BackgroundColor3 = Color3.fromRGB(220, 20, 60) -- Crimson
+    else
+        autoAcceptEnabled = false
+        AutoAcceptButton.Text = "ENABLE AUTO ACCEPT"
+        AutoAcceptButton.BackgroundColor3 = Color3.fromRGB(50, 205, 50)
+        updateStatus("Auto Accept Disabled", Color3.fromRGB(255, 100, 100))
+    end
+end)
+
+-- Button Hover Effects
+local function setupButtonHover(button, normalColor, hoverColor)
+    button.MouseEnter:Connect(function()
+        if (button == AutoTradeButton and not autoTradeRunning) or 
+           (button == AutoAcceptButton and not autoAcceptEnabled) or
+           (button == AutoTradeButton and autoTradeRunning) or
+           (button == AutoAcceptButton and autoAcceptEnabled) then
+            button.BackgroundColor3 = hoverColor
+        end
+    end)
+    
+    button.MouseLeave:Connect(function()
+        if button == AutoTradeButton then
+            button.BackgroundColor3 = autoTradeRunning and Color3.fromRGB(220, 20, 60) or Color3.fromRGB(65, 105, 225)
+        elseif button == AutoAcceptButton then
+            button.BackgroundColor3 = autoAcceptEnabled and Color3.fromRGB(220, 20, 60) or Color3.fromRGB(50, 205, 50)
+        end
+    end)
+end
+
+setupButtonHover(AutoTradeButton, Color3.fromRGB(65, 105, 225), Color3.fromRGB(75, 115, 235))
+setupButtonHover(AutoAcceptButton, Color3.fromRGB(50, 205, 50), Color3.fromRGB(60, 215, 60))
+
+-- TextBox Focus Effects
+local function setupTextBoxFocus(textbox)
+    textbox.Focused:Connect(function()
+        textbox.BackgroundColor3 = Color3.fromRGB(60, 60, 65)
+    end)
+    
+    textbox.FocusLost:Connect(function()
+        textbox.BackgroundColor3 = Color3.fromRGB(50, 50, 55)
+    end)
+end
+
+setupTextBoxFocus(NicknameBox)
+setupTextBoxFocus(AmountBox)
+
+-- Initial Status
+updateStatus("Ready to start", Color3.fromRGB(200, 200, 200))
+
+-- Notify user
+print("Auto Trade GUI Loaded!")
+print("Drag the title bar to move the window")
+print("Enter target nickname and amount, then click buttons to start")
